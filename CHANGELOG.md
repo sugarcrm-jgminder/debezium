@@ -2,6 +2,9 @@
 
 All notable changes are documented in this file. Release numbers follow [Semantic Versioning](http://semver.org)
 
+## 1.2.4.Final-cxp-v1
+* Backport of [DBZ-2682: Mapper converters should leave empty dates as zero #1914](https://github.com/debezium/debezium/pull/1914)
+
 ## 1.2.4.Final
 September 17th, 2020 [Detailed release notes](https://issues.redhat.com/secure/ReleaseNote.jspa?projectId=12317320&version=12347255)
 
