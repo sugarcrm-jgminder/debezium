@@ -2,7 +2,10 @@
 
 All notable changes are documented in this file. Release numbers follow [Semantic Versioning](http://semver.org)
 
-## 1.2.4.Final-cxp-v1
+## 1.2.4.Final-CXP-2
+* Backport of [DBZ-2738: MySqlParser: expect aggregate function names to be used as an identifier](https://github.com/debezium/debezium/pull/1941)
+
+## 1.2.4.Final-CXP-1
 * Backport of [DBZ-2682: Mapper converters should leave empty dates as zero #1914](https://github.com/debezium/debezium/pull/1914) (affects `debezium-core`)
 * Backport of [DBZ-2688: DropViewParserListener should respect the skipViews flag #1907](https://github.com/debezium/debezium/pull/1907) (affects `debezium-connector-mysql`)
 
