@@ -2,6 +2,9 @@
 
 All notable changes are documented in this file. Release numbers follow [Semantic Versioning](http://semver.org)
 
+## 1.2.4.Final-CXP-3
+* Backport of [DBZ-2794: No viable alternative at input 'optimize tables' on MySQL #1980](https://github.com/debezium/debezium/pull/1980)
+
 ## 1.2.4.Final-CXP-2
 * Backport of [DBZ-2738: MySqlParser: expect aggregate function names to be used as an identifier](https://github.com/debezium/debezium/pull/1941)
 
