@@ -32,7 +32,8 @@ public class SqlServerDatabaseSchema extends HistorizedRelationalDatabaseSchema 
                                    SqlServerConnection connection) {
         super(connectorConfig, topicSelector, connectorConfig.getTableFilters().dataCollectionFilter(), connectorConfig.getColumnFilter(),
                 new TableSchemaBuilder(
-                        new SqlServerValueConverters(connectorConfig.getDecimalMode(), connectorConfig.getTemporalPrecisionMode()),
+                        new SqlServerValueConverters(connectorConfig.getDecimalMode(), connectorConfig.getTemporalPrecisionMode(),
+                                connectorConfig.binaryHandlingMode()),
                         schemaNameAdjuster,
                         connectorConfig.customConverterRegistry(),
                         connectorConfig.getSourceInfoStructMaker().schema(),
