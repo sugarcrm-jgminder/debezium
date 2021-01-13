@@ -2,11 +2,14 @@
 
 All notable changes are documented in this file. Release numbers follow [Semantic Versioning](http://semver.org)
 
+## 1.2.4.Final-CXP-4
+* Backport of [[DBZ-2912] Add support for binary.handling.mode to the SQL Server connector #2044](https://github.com/debezium/debezium/pull/2044) (affects `debezium-connector-sqlserver`)
+
 ## 1.2.4.Final-CXP-3
-* Backport of [DBZ-2794: No viable alternative at input 'optimize tables' on MySQL #1980](https://github.com/debezium/debezium/pull/1980)
+* Backport of [DBZ-2794: No viable alternative at input 'optimize tables' on MySQL #1980](https://github.com/debezium/debezium/pull/1980) (affects `debezium-ddl-parser`)
 
 ## 1.2.4.Final-CXP-2
-* Backport of [DBZ-2738: MySqlParser: expect aggregate function names to be used as an identifier](https://github.com/debezium/debezium/pull/1941)
+* Backport of [DBZ-2738: MySqlParser: expect aggregate function names to be used as an identifier](https://github.com/debezium/debezium/pull/1941) (affects ` debezium-ddl-parser`)
 
 ## 1.2.4.Final-CXP-1
 * Backport of [DBZ-2682: Mapper converters should leave empty dates as zero #1914](https://github.com/debezium/debezium/pull/1914) (affects `debezium-core`)
