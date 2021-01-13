@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.debezium</groupId>
     <artifactId>debezium-checkstyle</artifactId>
-    <version>1.2.4.Final-CXP-4</version>
+    <version>1.2.4.Final-CXP-SNAPSHOT</version>
     <name>Debezium Checkstyle Rules</name>
     <description>Contains the definitions for the Debezium commons code style and conventions</description>
 
@@ -87,6 +87,6 @@
     </dependencies>
 
   <scm>
-    <tag>1.2.4.Final-CXP-4</tag>
+    <tag>v1.2.4.Final</tag>
   </scm>
 </project>
