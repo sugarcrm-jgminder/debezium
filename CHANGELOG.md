@@ -2,6 +2,9 @@
 
 All notable changes are documented in this file. Release numbers follow [Semantic Versioning](http://semver.org)
 
+## 1.4.0.Final-CXP-1
+* Backport of [[DBZ-2912] Add support for binary.handling.mode to the SQL Server connector #2044](https://github.com/debezium/debezium/pull/2044) (affects `debezium-connector-sqlserver`)
+
 ## 1.4.0.Final
 Januaryr 7th 2021 [Detailed release notes](https://issues.redhat.com/secure/ReleaseNote.jspa?projectId=12317320&version=12352766)
 
