@@ -32,6 +32,6 @@ public interface StreamingChangeEventSource extends ChangeEventSource {
      * like Postgres and Oracle to indicate how far the source TX log can be
      * discarded.
      */
-    default void commitOffset(Map<String, ?> offset) {
+    default void commitOffsets(Map<Map<String, ?>, Map<String, ?>> offsets) {
     }
 }

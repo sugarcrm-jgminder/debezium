@@ -7,6 +7,7 @@ package io.debezium.connector.sqlserver;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.connect.errors.ConnectException;
@@ -84,9 +85,9 @@ public class SqlServerConnectorTask extends BaseSourceTask {
         this.schema = new SqlServerDatabaseSchema(connectorConfig, valueConverters, topicSelector, schemaNameAdjuster);
         this.schema.initializeStorage();
 
-        final OffsetContext previousOffset = getPreviousOffset(new SqlServerOffsetContext.Loader(connectorConfig));
-        if (previousOffset != null) {
-            schema.recover(previousOffset);
+        final Map<Map<String, ?>, OffsetContext> previousOffsets = getPreviousOffsets(new SqlServerOffsetContext.Loader(connectorConfig, config));
+        if (!previousOffsets.isEmpty()) {
+            schema.recover(previousOffsets);
         }
 
         taskContext = new SqlServerTaskContext(connectorConfig, schema);
@@ -115,7 +116,7 @@ public class SqlServerConnectorTask extends BaseSourceTask {
                 schemaNameAdjuster);
 
         ChangeEventSourceCoordinator coordinator = new ChangeEventSourceCoordinator(
-                previousOffset,
+                previousOffsets,
                 errorHandler,
                 SqlServerConnector.class,
                 connectorConfig,

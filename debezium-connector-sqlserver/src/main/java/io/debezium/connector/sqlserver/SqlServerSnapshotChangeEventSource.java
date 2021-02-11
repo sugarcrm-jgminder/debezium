@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.debezium.pipeline.source.AbstractSnapshotChangeEventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +161,7 @@ public class SqlServerSnapshotChangeEventSource extends RelationalSnapshotChange
     protected void determineSnapshotOffset(RelationalSnapshotContext ctx) throws Exception {
         ctx.offset = new SqlServerOffsetContext(
                 connectorConfig,
+                "currentDatabase",
                 TxLogPosition.valueOf(jdbcConnection.getMaxLsn()),
                 false,
                 false);

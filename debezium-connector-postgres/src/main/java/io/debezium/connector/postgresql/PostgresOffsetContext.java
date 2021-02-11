@@ -7,9 +7,8 @@ package io.debezium.connector.postgresql;
 
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -192,8 +191,10 @@ public class PostgresOffsetContext implements OffsetContext {
         }
 
         @Override
-        public Map<String, ?> getPartition() {
-            return Collections.singletonMap(SERVER_PARTITION_KEY, connectorConfig.getLogicalName());
+        public Collection<Map<String, ?>> getPartitions() {
+            return Collections.singleton(
+                    Collections.singletonMap(SERVER_PARTITION_KEY, connectorConfig.getLogicalName())
+            );
         }
 
         private Long readOptionalLong(Map<String, ?> offset, String key) {
@@ -203,17 +204,20 @@ public class PostgresOffsetContext implements OffsetContext {
 
         @SuppressWarnings("unchecked")
         @Override
-        public OffsetContext load(Map<String, ?> offset) {
-            final Lsn lsn = Lsn.valueOf(readOptionalLong(offset, SourceInfo.LSN_KEY));
-            final Lsn lastCompletelyProcessedLsn = Lsn.valueOf(readOptionalLong(offset, LAST_COMPLETELY_PROCESSED_LSN_KEY));
-            final Lsn lastCommitLsn = Lsn.valueOf(readOptionalLong(offset, LAST_COMPLETELY_PROCESSED_LSN_KEY));
-            final Long txId = readOptionalLong(offset, SourceInfo.TXID_KEY);
+        public Map<Map<String, ?>, OffsetContext> load(Map<Map<String, ?>, Map<String, ?>> offsets) {
+            return offsets.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                Map<String, ?> offset = entry.getKey();
+                final Lsn lsn = Lsn.valueOf(readOptionalLong(offset, SourceInfo.LSN_KEY));
+                final Lsn lastCompletelyProcessedLsn = Lsn.valueOf(readOptionalLong(offset, LAST_COMPLETELY_PROCESSED_LSN_KEY));
+                final Lsn lastCommitLsn = Lsn.valueOf(readOptionalLong(offset, LAST_COMPLETELY_PROCESSED_LSN_KEY));
+                final Long txId = readOptionalLong(offset, SourceInfo.TXID_KEY);
 
-            final Instant useconds = Conversions.toInstantFromMicros((Long) offset.get(SourceInfo.TIMESTAMP_USEC_KEY));
-            final boolean snapshot = (boolean) ((Map<String, Object>) offset).getOrDefault(SourceInfo.SNAPSHOT_KEY, Boolean.FALSE);
-            final boolean lastSnapshotRecord = (boolean) ((Map<String, Object>) offset).getOrDefault(SourceInfo.LAST_SNAPSHOT_RECORD_KEY, Boolean.FALSE);
-            return new PostgresOffsetContext(connectorConfig, lsn, lastCompletelyProcessedLsn, lastCommitLsn, txId, useconds, snapshot, lastSnapshotRecord,
-                    TransactionContext.load(offset));
+                final Instant useconds = Conversions.toInstantFromMicros((Long) offset.get(SourceInfo.TIMESTAMP_USEC_KEY));
+                final boolean snapshot = (boolean) ((Map<String, Object>) offset).getOrDefault(SourceInfo.SNAPSHOT_KEY, Boolean.FALSE);
+                final boolean lastSnapshotRecord = (boolean) ((Map<String, Object>) (Map<String, Object>) offset).getOrDefault(SourceInfo.LAST_SNAPSHOT_RECORD_KEY, Boolean.FALSE);
+                return new PostgresOffsetContext(connectorConfig, lsn, lastCompletelyProcessedLsn, lastCommitLsn, txId, useconds, snapshot, lastSnapshotRecord,
+                        TransactionContext.load(offset));
+            }));
         }
     }
 

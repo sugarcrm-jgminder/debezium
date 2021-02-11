@@ -11,8 +11,10 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.debezium.pipeline.spi.OffsetContext;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -85,7 +87,7 @@ public class PostgresConnectorTask extends BaseSourceTask {
 
         schema = new PostgresSchema(connectorConfig, typeRegistry, databaseCharset, topicSelector);
         this.taskContext = new PostgresTaskContext(connectorConfig, schema, topicSelector);
-        final PostgresOffsetContext previousOffset = (PostgresOffsetContext) getPreviousOffset(new PostgresOffsetContext.Loader(connectorConfig));
+        final PostgresOffsetContext previousOffset = (PostgresOffsetContext) getPreviousOffsets(new PostgresOffsetContext.Loader(connectorConfig));
         final Clock clock = Clock.system();
 
         LoggingContext.PreviousContext previousContext = taskContext.configureLoggingContext(CONTEXT_NAME);
@@ -102,14 +104,14 @@ public class PostgresConnectorTask extends BaseSourceTask {
                 LOGGER.warn("unable to load info of replication slot, Debezium will try to create the slot");
             }
 
-            if (previousOffset == null) {
+            if (previousOffsets == null) {
                 LOGGER.info("No previous offset found");
                 // if we have no initial offset, indicate that to Snapshotter by passing null
                 snapshotter.init(connectorConfig, null, slotInfo);
             }
             else {
-                LOGGER.info("Found previous offset {}", previousOffset);
-                snapshotter.init(connectorConfig, previousOffset.asOffsetState(), slotInfo);
+                LOGGER.info("Found previous offset {}", previousOffsets);
+                snapshotter.init(connectorConfig, previousOffsets.asOffsetState(), slotInfo);
             }
 
             ReplicationConnection replicationConnection = null;
@@ -190,7 +192,7 @@ public class PostgresConnectorTask extends BaseSourceTask {
                     schemaNameAdjuster);
 
             ChangeEventSourceCoordinator coordinator = new PostgresChangeEventSourceCoordinator(
-                    previousOffset,
+                    previousOffsets,
                     errorHandler,
                     PostgresConnector.class,
                     connectorConfig,

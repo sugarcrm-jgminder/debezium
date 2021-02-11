@@ -6,6 +6,7 @@
 package io.debezium.pipeline.spi;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.kafka.connect.data.Schema;
@@ -27,9 +28,9 @@ public interface OffsetContext {
      * Implementations load a connector-specific offset context based on the offset values stored in Kafka.
      */
     interface Loader {
-        Map<String, ?> getPartition();
+        Collection<Map<String, ?>> getPartitions();
 
-        OffsetContext load(Map<String, ?> offset);
+        Map<Map<String, ?>, OffsetContext> load(Map<Map<String, ?>, Map<String, ?>> offsets);
     }
 
     Map<String, ?> getPartition();

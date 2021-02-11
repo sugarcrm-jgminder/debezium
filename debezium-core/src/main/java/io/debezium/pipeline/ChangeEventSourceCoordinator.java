@@ -141,9 +141,9 @@ public class ChangeEventSourceCoordinator {
         LOGGER.info("Finished streaming");
     }
 
-    public void commitOffset(Map<String, ?> offset) {
-        if (!commitOffsetLock.isLocked() && streamingSource != null && offset != null) {
-            streamingSource.commitOffset(offset);
+    public void commitOffset(Map<Map<String, ?>, Map<String, ?>> offsets) {
+        if (!commitOffsetLock.isLocked() && streamingSource != null && offsets.size() != 0) {
+            streamingSource.commitOffsets(offsets);
         }
     }
 

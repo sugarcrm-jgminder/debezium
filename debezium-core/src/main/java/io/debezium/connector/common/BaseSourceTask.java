@@ -8,6 +8,7 @@ package io.debezium.connector.common;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -69,7 +70,7 @@ public abstract class BaseSourceTask extends SourceTask {
      * acknowledged with the source database in {@link BaseSourceTask#commit()}
      * (which may be a no-op depending on the connector).
      */
-    private volatile Map<String, ?> lastOffset;
+    private volatile Map<Map<String, ?>, Map<String, ?>> lastOffsets;
 
     private Duration retriableRestartWait;
 
@@ -219,9 +220,10 @@ public abstract class BaseSourceTask extends SourceTask {
 
     @Override
     public void commitRecord(SourceRecord record) throws InterruptedException {
+        Map<String, ?> currentPartition = record.sourcePartition();
         Map<String, ?> currentOffset = record.sourceOffset();
-        if (currentOffset != null) {
-            this.lastOffset = currentOffset;
+        if (currentPartition != null && currentOffset != null) {
+            this.lastOffsets.put(currentPartition, currentOffset);
         }
     }
 
@@ -231,8 +233,8 @@ public abstract class BaseSourceTask extends SourceTask {
 
         if (locked) {
             try {
-                if (coordinator != null && lastOffset != null) {
-                    coordinator.commitOffset(lastOffset);
+                if (coordinator != null && lastOffsets.size() != 0) {
+                    coordinator.commitOffset(lastOffsets);
                 }
             }
             finally {
@@ -252,23 +254,22 @@ public abstract class BaseSourceTask extends SourceTask {
     /**
      * Loads the connector's persistent offset (if present) via the given loader.
      */
-    protected OffsetContext getPreviousOffset(OffsetContext.Loader loader) {
-        Map<String, ?> partition = loader.getPartition();
+    protected Map<Map<String, ?>, OffsetContext> getPreviousOffsets(OffsetContext.Loader loader) {
+        Collection<Map<String, ?>> partitions = loader.getPartitions();
 
-        if (lastOffset != null) {
-            OffsetContext offsetContext = loader.load(lastOffset);
-            LOGGER.info("Found previous offset after restart {}", offsetContext);
-            return offsetContext;
+        if (!lastOffsets.isEmpty()) {
+            Map<Map<String, ?>, OffsetContext> offsetContexts = loader.load(lastOffsets);
+            LOGGER.info("Found previous offsets after restart {}", offsetContexts);
+            return offsetContexts;
         }
 
-        Map<String, Object> previousOffset = context.offsetStorageReader()
-                .offsets(Collections.singleton(partition))
-                .get(partition);
+        Map<Map<String, ?>, Map<String, ?>> previousOffsets = context.offsetStorageReader()
+                .offsets(partitions);
 
-        if (previousOffset != null) {
-            OffsetContext offsetContext = loader.load(previousOffset);
-            LOGGER.info("Found previous offset {}", offsetContext);
-            return offsetContext;
+        if (!previousOffsets.isEmpty()) {
+            Map<Map<String, ?>, OffsetContext> offsetContexts = loader.load(previousOffsets);
+            LOGGER.info("Found previous offset {}", offsetContexts);
+            return offsetContexts;
         }
         else {
             return null;

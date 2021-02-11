@@ -331,7 +331,14 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     }
 
     @Override
-    public void commitOffset(Map<String, ?> offset) {
+    public void commitOffsets(Map<Map<String, ?>, Map<String, ?>> offsets) {
+        offsets.forEach(this::flushReplicationStream);
+    }
+
+    /**
+     * TODO: use the value of the partition argument.
+     */
+    private void flushReplicationStream(Map<String, ?> partition, Map<String, ?> offset) {
         try {
             ReplicationStream replicationStream = this.replicationStream.get();
             final Lsn commitLsn = Lsn.valueOf((Long) offset.get(PostgresOffsetContext.LAST_COMMIT_LSN_KEY));
