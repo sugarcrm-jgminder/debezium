@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -274,5 +275,16 @@ public abstract class BaseSourceTask extends SourceTask {
         else {
             return null;
         }
+    }
+
+    private void test1() {
+        Map<String, ?> x = new HashMap<>();
+        x.put("a", "1");
+        x.put("a", 5);
+        // Object c = test2(x);
+    }
+
+    private <T> T test2(Map<String, T> foo) {
+        return foo.get("x");
     }
 }
