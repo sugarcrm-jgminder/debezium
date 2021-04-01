@@ -984,92 +984,97 @@ public class SqlServerConnectorIT extends AbstractConnectorTest {
         stopConnector();
     }
 
-    // @Test
-    // public void testBlacklistTable() throws Exception {
-    // final int RECORDS_PER_TABLE = 5;
-    // final int TABLES = 1;
-    // final int ID_START = 10;
-    // final Configuration config = TestHelper.defaultMultiDatabaseConfig()
-    // .with(SqlServerConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL)
-    // .with(SqlServerConnectorConfig.TABLE_BLACKLIST, "dbo.tablea")
-    // .build();
-    //
-    // TestHelper.forEachDatabase(databaseName -> {
-    // connection.execute("USE " + databaseName);
-    // connection.execute(
-    // "INSERT INTO tableb VALUES(1, 'b')");
-    // });
-    //
-    // start(SqlServerConnector.class, config);
-    // assertConnectorIsRunning();
-    //
-    // // Wait for snapshot completion
-    // SourceRecords a1 = consumeRecordsByTopic(3 * TestHelper.TEST_DATABASES.size());
-    //
-    // // We get 3 records instead of 2
-    // // consumeRecordsByTopic(TestHelper.TEST_DATABASES.size());
-    //
-    // TestHelper.forEachDatabase(databaseName -> {
-    // connection.execute("USE " + databaseName);
-    // for (int i = 0; i < RECORDS_PER_TABLE; i++) {
-    // final int id = ID_START + i;
-    // connection.execute(
-    // "INSERT INTO tablea VALUES(" + id + ", 'a')");
-    // connection.execute(
-    // "INSERT INTO tableb VALUES(" + id + ", 'b')");
-    // }
-    //
-    // final SourceRecords records = consumeRecordsByTopic(RECORDS_PER_TABLE * TABLES);
-    // final List<SourceRecord> tableA = records.recordsForTopic(TestHelper.topicName(databaseName, "tablea"));
-    // final List<SourceRecord> tableB = records.recordsForTopic(TestHelper.topicName(databaseName, "tableb"));
-    // Assertions.assertThat(tableA == null || tableA.isEmpty()).isTrue();
-    // Assertions.assertThat(tableB).hasSize(RECORDS_PER_TABLE);
-    // });
-    //
-    // stopConnector();
-    // }
+    @Test
+    public void testBlacklistTable() throws Exception {
+        final int RECORDS_PER_TABLE = 5;
+        final int TABLES = 1;
+        final int ID_START = 10;
+        final Configuration config = TestHelper.defaultMultiDatabaseConfig()
+                .with(SqlServerConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL)
+                .with(SqlServerConnectorConfig.TABLE_BLACKLIST, "dbo.tablea")
+                .build();
 
-    // @Test
-    // public void testTableExcludeList() throws Exception {
-    // final int RECORDS_PER_TABLE = 5;
-    // final int TABLES = 1;
-    // final int ID_START = 10;
-    // final Configuration config = TestHelper.defaultMultiDatabaseConfig()
-    // .with(SqlServerConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL)
-    // .with(SqlServerConnectorConfig.TABLE_EXCLUDE_LIST, "dbo.tablea")
-    // .build();
-    //
-    // TestHelper.forEachDatabase(databaseName -> {
-    // connection.execute("USE " + databaseName);
-    // connection.execute(
-    // "INSERT INTO tableb VALUES(1, 'b')");
-    // });
-    //
-    // start(SqlServerConnector.class, config);
-    // assertConnectorIsRunning();
-    //
-    // // Wait for snapshot completion
-    // consumeRecordsByTopic(TestHelper.TEST_DATABASES.size());
-    //
-    // TestHelper.forEachDatabase(databaseName -> {
-    // connection.execute("USE " + databaseName);
-    // for (int i = 0; i < RECORDS_PER_TABLE; i++) {
-    // final int id = ID_START + i;
-    // connection.execute(
-    // "INSERT INTO tablea VALUES(" + id + ", 'a')");
-    // connection.execute(
-    // "INSERT INTO tableb VALUES(" + id + ", 'b')");
-    // }
-    //
-    // final SourceRecords records = consumeRecordsByTopic(RECORDS_PER_TABLE * TABLES);
-    // final List<SourceRecord> tableA = records.recordsForTopic(TestHelper.topicName(databaseName, "tablea"));
-    // final List<SourceRecord> tableB = records.recordsForTopic(TestHelper.topicName(databaseName, "tableb"));
-    // Assertions.assertThat(tableA == null || tableA.isEmpty()).isTrue();
-    // Assertions.assertThat(tableB).hasSize(RECORDS_PER_TABLE);
-    // });
-    //
-    // stopConnector();
-    // }
+        TestHelper.forEachDatabase(databaseName -> {
+            connection.execute("USE " + databaseName);
+            connection.execute(
+                    "INSERT INTO tableb VALUES(1, 'b')");
+        });
+
+        start(SqlServerConnector.class, config);
+        assertConnectorIsRunning();
+
+        // Wait for snapshot completion, at this point we have 4 records total in the topic for snapshot
+        // testDB1
+        // tablea  tableb
+        // (1, a)  (1, b)
+        //
+        // testDB2
+        // tablea  tableb
+        // (1, a)  (1, b)
+        // SourceRecords a1 = consumeRecordsByTopic(TestHelper.TEST_DATABASES.size());
+        consumeRecordsByTopic(2);
+
+        TestHelper.forEachDatabase(databaseName -> {
+            connection.execute("USE " + databaseName);
+            for (int i = 0; i < RECORDS_PER_TABLE; i++) {
+                final int id = ID_START + i;
+                connection.execute(
+                        "INSERT INTO tablea VALUES(" + id + ", 'a')");
+                connection.execute(
+                        "INSERT INTO tableb VALUES(" + id + ", 'b')");
+            }
+
+            final SourceRecords records = consumeRecordsByTopic(RECORDS_PER_TABLE * TABLES * TestHelper.TEST_DATABASES.size());
+            final List<SourceRecord> tableA = records.recordsForTopic(TestHelper.topicName(databaseName, "tablea"));
+            final List<SourceRecord> tableB = records.recordsForTopic(TestHelper.topicName(databaseName, "tableb"));
+            Assertions.assertThat(tableA == null || tableA.isEmpty()).isTrue();
+            Assertions.assertThat(tableB).hasSize(RECORDS_PER_TABLE);
+        });
+
+        stopConnector();
+    }
+
+    @Test
+    public void testTableExcludeList() throws Exception {
+        final int RECORDS_PER_TABLE = 5;
+        final int TABLES = 1;
+        final int ID_START = 10;
+        final Configuration config = TestHelper.defaultMultiDatabaseConfig()
+                .with(SqlServerConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL)
+                .with(SqlServerConnectorConfig.TABLE_EXCLUDE_LIST, "dbo.tablea")
+                .build();
+
+        TestHelper.forEachDatabase(databaseName -> {
+            connection.execute("USE " + databaseName);
+            connection.execute(
+                    "INSERT INTO tableb VALUES(1, 'b')");
+        });
+
+        start(SqlServerConnector.class, config);
+        assertConnectorIsRunning();
+
+        // Wait for snapshot completion
+        SourceRecords a1 = consumeRecordsByTopic(2 );
+
+        TestHelper.forEachDatabase(databaseName -> {
+            connection.execute("USE " + databaseName);
+            for (int i = 0; i < RECORDS_PER_TABLE; i++) {
+                final int id = ID_START + i;
+                connection.execute(
+                        "INSERT INTO tablea VALUES(" + id + ", 'a')");
+                connection.execute(
+                        "INSERT INTO tableb VALUES(" + id + ", 'b')");
+            }
+
+            final SourceRecords records = consumeRecordsByTopic(RECORDS_PER_TABLE * TABLES * TestHelper.TEST_DATABASES.size());
+            final List<SourceRecord> tableA = records.recordsForTopic(TestHelper.topicName(databaseName, "tablea"));
+            final List<SourceRecord> tableB = records.recordsForTopic(TestHelper.topicName(databaseName, "tableb"));
+            Assertions.assertThat(tableA == null || tableA.isEmpty()).isTrue();
+            Assertions.assertThat(tableB).hasSize(RECORDS_PER_TABLE);
+        });
+
+        stopConnector();
+    }
 
     @Test
     @FixFor("DBZ-1617")

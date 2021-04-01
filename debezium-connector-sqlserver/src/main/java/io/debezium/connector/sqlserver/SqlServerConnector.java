@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,7 +91,7 @@ public class SqlServerConnector extends RelationalBaseSourceConnector {
             List<Map<String, String>> taskConfigs = new ArrayList<>();
             for (int taskIndex = 0; taskIndex < maxTasks; taskIndex++) {
                 String databases = String.join(",", taskDatabases.get(taskIndex));
-                Map<String, String> taskProperties = new HashMap<>(properties);
+                Map<String, String> taskProperties = new LinkedHashMap<>(properties);
                 taskProperties.put(TASK_DATABASE_NAMES.name(), databases);
                 taskConfigs.add(Collections.unmodifiableMap(taskProperties));
             }
